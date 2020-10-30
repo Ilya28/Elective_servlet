@@ -1,4 +1,4 @@
-package org.elective.model.entities;
+package org.elective.entities;
 
 import org.elective.dbtools.annotations.Table;
 
