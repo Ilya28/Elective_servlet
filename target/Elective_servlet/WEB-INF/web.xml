@@ -7,7 +7,7 @@
 
   <servlet>
     <servlet-name>Controller</servlet-name>
-    <servlet-class>org.elective.Controller</servlet-class>
+    <servlet-class>org.elective.controller.Controller</servlet-class>
   </servlet>
 
   <servlet-mapping>
