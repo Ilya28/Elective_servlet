@@ -3,6 +3,7 @@ package org.elective.controller;
 import org.elective.command.Command;
 import org.elective.command.CommandResolver;
 import org.elective.command.tools.RequestMethod;
+import org.elective.service.WebPaths;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,8 +14,6 @@ import java.io.IOException;
 
 @WebServlet(name = "Controller")
 public class Controller extends HttpServlet {
-    private static final int PATH_PREFIX = 31;
-
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         System.out.println("service()");
@@ -41,7 +40,7 @@ public class Controller extends HttpServlet {
 
     private void processRequest(HttpServletRequest request, HttpServletResponse response, RequestMethod requestMethod)
             throws IOException, ServletException {
-        String path = request.getRequestURI().substring(PATH_PREFIX);
+        String path = WebPaths.extractFinalPath(request.getRequestURI());
         System.out.println("Path = " + path);
 
         Command command = CommandResolver.get(path, requestMethod);
