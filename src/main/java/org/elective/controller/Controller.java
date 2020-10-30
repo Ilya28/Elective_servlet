@@ -13,7 +13,7 @@ import java.io.IOException;
 
 @WebServlet(name = "Controller")
 public class Controller extends HttpServlet {
-    private final int PATH_PREFIX = 31;
+    private static final int PATH_PREFIX = 31;
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -39,12 +39,16 @@ public class Controller extends HttpServlet {
         processRequest(request, response, RequestMethod.METHOD_GET);
     }
 
-    private void processRequest(HttpServletRequest request, HttpServletResponse response, RequestMethod requestMethod) {
+    private void processRequest(HttpServletRequest request, HttpServletResponse response, RequestMethod requestMethod)
+            throws IOException, ServletException {
         String path = request.getRequestURI().substring(PATH_PREFIX);
         System.out.println("Path = " + path);
 
         Command command = CommandResolver.get(path, requestMethod);
 
-        command.execute(request, response);
+        String forward;
+        forward = command.execute(request, response);
+
+        request.getRequestDispatcher(forward).forward(request, response);
     }
 }
