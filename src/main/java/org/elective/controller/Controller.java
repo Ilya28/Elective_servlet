@@ -48,6 +48,9 @@ public class Controller extends HttpServlet {
         String forward;
         forward = command.execute(request, response);
 
-        request.getRequestDispatcher(forward).forward(request, response);
+        if (WebPaths.isRedirect(forward))
+            response.sendRedirect(WebPaths.getUrlFromRedirection(forward));
+        else
+            request.getRequestDispatcher(forward).forward(request, response);
     }
 }
