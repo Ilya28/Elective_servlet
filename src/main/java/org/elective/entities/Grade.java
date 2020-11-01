@@ -5,27 +5,27 @@ import org.elective.dbtools.annotations.TableField;
 
 @Table(name = "grade_log", fieldsAutoNaming = true)
 public class Grade {
-    private int topic;  // PK FK
-    private  int user;  // PK FK
+    private Long topic;  // PK FK
+    private Long user;  // PK FK
     @TableField(name = "grade")
     private int gradeValue;
 
     public Grade() {
     }
 
-    public int getTopic() {
+    public Long getTopic() {
         return topic;
     }
 
-    public void setTopic(int topic) {
+    public void setTopic(Long topic) {
         this.topic = topic;
     }
 
-    public int getUser() {
+    public Long getUser() {
         return user;
     }
 
-    public void setUser(int user) {
+    public void setUser(Long user) {
         this.user = user;
     }
 
