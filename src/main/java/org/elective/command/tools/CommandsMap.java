@@ -1,30 +1,36 @@
 package org.elective.command.tools;
 
 import org.elective.command.Command;
+import org.elective.service.Security;
 
-import java.util.HashMap;
+import java.util.*;
 
-public class CommandsMap extends HashMap<CommandKey, Command> {
-    public void addMapping(CommandKey commandKey, Command command) {
+public class CommandsMap extends HashMap<CommandKey, CommandAndAccessContainer> {
+    public void addMapping(CommandKey commandKey, CommandAndAccessContainer command) {
         this.put(commandKey, command);
     }
 
-    public void addMapping(String commandName, RequestMethod requestMethod, Command command) {
-        this.addMapping(new CommandKey(commandName, requestMethod), command);
-    }
-
-    public void addMapping(String commandName, Command command) {
-        this.addMapping(commandName, RequestMethod.METHOD_ANY, command);
+    public void addMapping(String commandName, RequestMethod requestMethod, Command command, Security...securities) {
+        this.addMapping(
+                new CommandKey(commandName, requestMethod),
+                new CommandAndAccessContainer(command, securities));
     }
 
     public Command getCommand(CommandKey commandKey) {
-        return this.get(commandKey);
-    }
-    public Command getCommand(String commandName, RequestMethod requestMethod) {
-        return this.get(new CommandKey(commandName, requestMethod));
+        return this.get(commandKey).getCommand();
     }
 
-    public Command getCommandOrDefault(String commandName, RequestMethod requestMethod, Command command) {
-        return this.getOrDefault(new CommandKey(commandName, requestMethod), command);
+    public Command getCommandOrDefault(CommandKey commandKey, Command defaultCommand) {
+        Optional<Command> command = Optional.ofNullable(get(commandKey).getCommand());
+        return command.orElse(defaultCommand);
+    }
+
+    public Set<Security> getAccessSet(CommandKey commandKey) {
+        Optional<CommandAndAccessContainer> commandAndAccessContainer =
+                Optional.ofNullable(this.get(commandKey));
+        if (commandAndAccessContainer.isPresent())
+            return commandAndAccessContainer.get().getAccessSet();
+        else
+            return new HashSet<>();
     }
 }
