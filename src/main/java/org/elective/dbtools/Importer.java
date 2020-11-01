@@ -1,18 +1,19 @@
 package org.elective.dbtools;
 
+import org.apache.log4j.Logger;
 import org.elective.dbtools.annotations.Table;
 import org.elective.dbtools.annotations.TableField;
 import org.elective.dbtools.exceptions.ORMException;
+import org.elective.service.UserService;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class Importer {
+public class Importer<T> {
+    private static final Logger log = Logger.getLogger(Importer.class);
     private Connection connection;
 
     public Importer(Connection connection) {
@@ -26,38 +27,20 @@ public class Importer {
      * @return All objects from JDBC ResultSet
      * @throws ORMException When any error occurs
      */
-    public List<Object> Load(Class<?> clazz, String condition) throws ORMException{
-        if (!clazz.isAnnotationPresent(Table.class))
-            throw new ORMException("The class must marked with annotation `Table(...)`");
-        List<Field> fields;
-        if (clazz.getAnnotation(Table.class).fieldsAutoNaming())
-            fields = Arrays.asList(clazz.getDeclaredFields());
-        else
-            fields = Arrays.stream(clazz.getDeclaredFields())
-                .filter(f->f.isAnnotationPresent(TableField.class))
-                .collect(Collectors.toList());
+    public List<T> load(Class<T> clazz, String condition) throws ORMException{
+        List<Field> fields= Tools.getAllMatchingFields(clazz);
         if (fields.isEmpty())
             throw new ORMException("There are no fields marked with annotations TableField(...)");
         String query = createSQLQuery(clazz, fields, condition);
 
-        List<Object> result = new ArrayList<>();
+        List<T> result = new ArrayList<>();
         try (Statement statement = connection.createStatement();
-             ResultSet rs = statement.executeQuery(query.toString())) {
+             ResultSet rs = statement.executeQuery(query)) {
             if (rs.getMetaData().getColumnCount() != fields.size())
                 throw new ORMException("Wrong fields count");
             while (rs.next()) {
-                Object obj = createNewEntity(clazz);
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    String fieldName = Tools.getSQLNameFromField(field);
-                    try {
-                        field.set(obj, rs.getObject(fieldName));
-                    } catch (IllegalAccessException exception) {
-                        throw new ORMException("Reflection: Illegal access to field `" + field.getName() + "`");
-                    } catch (SQLException exception) {
-                        throw new ORMException("Unknown field `" + fieldName + "`");
-                    }
-                }
+                T obj = createNewEntity(clazz);
+                Tools.setObjectFieldsFromResultSet(obj, fields, rs);
                 result.add(obj);
             }
 
@@ -65,6 +48,44 @@ public class Importer {
             throw new ORMException();
         }
         return result;
+    }
+
+    public Optional<T> loadOne(Class<T> clazz, String condition) throws ORMException {
+        List<Field> fields= Tools.getAllMatchingFields(clazz);
+        if (fields.isEmpty())
+            throw new ORMException("There are no fields marked with annotations TableField(...)");
+        String query = createSQLQuery(clazz, fields, condition);
+        log.info("Query: '" + query + "'");
+        T obj;
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(query)) {
+            if (rs.getMetaData().getColumnCount() != fields.size())
+                throw new ORMException("Wrong fields count");
+            if (rs.next()) {
+                obj = createNewEntity(clazz);
+                Tools.setObjectFieldsFromResultSet(obj, fields, rs);
+            } else {
+                return Optional.empty();
+            }
+
+        } catch (SQLException exception) {
+            throw new ORMException(exception.getMessage());
+        }
+        return Optional.of(obj);
+    }
+
+    public int getTableCount(Class<T> clazz) throws ORMException {
+        if (Tools.getAllMatchingFields(clazz).isEmpty())
+            throw new ORMException("There are no fields marked with annotations TableField(...)");
+        String query = "SELECT COUNT(*) FROM " + Tools.getSQLNameFromClass(clazz) + ";";
+        int count;
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(query)) {
+             count = rs.next()? rs.getInt(1): 0;
+        } catch (SQLException exception) {
+            throw new ORMException(exception.getMessage());
+        }
+        return count;
     }
 
     private String createSQLQuery(Class<?> clazz, List<Field> fields, String condition) {
@@ -85,8 +106,8 @@ public class Importer {
         return query.toString();
     }
 
-    private Object createNewEntity(Class<?> clazz) throws ORMException{
-        Object obj;
+    private T createNewEntity(Class<T> clazz) throws ORMException{
+        T obj;
         try {
             obj = clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
