@@ -3,8 +3,8 @@ package org.elective.command.tools;
 import java.util.Objects;
 
 public class CommandKey {
-    private String commandName;
-    private RequestMethod requestMethod;
+    private final String commandName;
+    private final RequestMethod requestMethod;
 
     @Override
     public boolean equals(Object o) {
@@ -23,5 +23,13 @@ public class CommandKey {
     public CommandKey(String commandName, RequestMethod requestMethod) {
         this.commandName = commandName;
         this.requestMethod = requestMethod;
+    }
+
+    public String getCommandName() {
+        return commandName;
+    }
+
+    public RequestMethod getRequestMethod() {
+        return requestMethod;
     }
 }
