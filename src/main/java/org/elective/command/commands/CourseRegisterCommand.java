@@ -20,12 +20,17 @@ public class CourseRegisterCommand implements Command {
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) {
         String username = (String) request.getServletContext().getAttribute(Security.ATTRIBUTE_USERNAME_HOLDER);
+        if (username == null) {
+            log.error("Null username");
+            return "redirect:/courses";
+        }
         try {
             Long id = Long.valueOf(request.getParameter("id"));
-            if (username != null)
+            if (!registrationService.isRegistered(username, id))
                 registrationService.addRegistration(username, id);
             else
-                log.error("Null username");
+                log.info("This user already registered for this course");
+
         } catch (NumberFormatException e) {
             log.error("Missing course id parameter");
         }
