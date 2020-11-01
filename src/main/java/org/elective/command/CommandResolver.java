@@ -109,7 +109,7 @@ public class CommandResolver {
                 Security.USER, Security.TEACHER, Security.ADMIN
         );
         commands.addMapping(
-                "course/redister/cancel", METHOD_GET,
+                "course/register/cancel", METHOD_GET,
                 new CourseRegisterCancelCommand(new RegistrationService()),
                 Security.USER, Security.TEACHER, Security.ADMIN
         );
