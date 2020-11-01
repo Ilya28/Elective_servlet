@@ -5,11 +5,15 @@ import org.elective.dbtools.ConnectionPoolHolder;
 import org.elective.dbtools.Exporter;
 import org.elective.dbtools.Importer;
 import org.elective.dbtools.exceptions.ORMException;
+import org.elective.entities.Course;
 import org.elective.entities.Registration;
 import org.elective.entities.User;
+import org.elective.service.pagination.Page;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
@@ -19,11 +23,12 @@ public class RegistrationService implements Service{
     private static final Logger log = Logger.getLogger(RegistrationService.class);
     private final DataSource dataSource = ConnectionPoolHolder.getDataSource();
 
-    public List<Registration> getRegistrationsByUserId(Integer id, Integer page) {
+    public List<Registration> getRegistrationsByUserEmail(String email, Page page) {
         Importer<Registration> importer = null;
         try (Connection con = dataSource.getConnection()){
             importer = new Importer<>(con);
-            return importer.load(Registration.class, "WHERE id=" + id + " LIMIT " + (page-1)*4 + ", " + page*4);
+            return importer.load(Registration.class, "WHERE email='" + email +
+                    "' LIMIT " + (page.getPage()-1)*4 + ", " + page.getPage()*4);
         } catch (SQLException e) {
             throw new IllegalStateException("Can't get connection");
         } catch (ORMException e) {
@@ -59,17 +64,50 @@ public class RegistrationService implements Service{
         addRegistration(registration);
     }
 
-
-
-    public boolean isRegistered(String username, Integer courseId) {
-        /*try (Connection con = dataSource.getConnection();
-             //  todo: query
-             //PreparedStatement statement = con.prepareStatement("SELECT * FROM courses INNER JOIN WHERE id=?;")) {
-            //statement.setString(1, id.toString());
-            //return  statement.executeUpdate() == 1;
+    public void deleteByUsernameAndCourseId(String username, Long courseId) {
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement statement = con.prepareStatement(
+                            "DELETE registrations FROM registrations INNER JOIN usr " +
+                             "ON registrations.user=usr.id " +
+                             "WHERE usr.email=? AND registrations.course=?;")) {
+             statement.setString(1, username);
+             statement.setLong(2, courseId);
+             if (statement.executeUpdate() != 1)
+                 log.warn("Deleting error. More o less than one updated rows");
         } catch (SQLException e) {
+            log.error("deleteByUsernameAndCourseId: Cant execute a query");
+        }
+    }
+
+
+
+    public boolean isRegistered(String username, Long courseId) {
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement statement = con.prepareStatement(
+                     "SELECT * FROM registrations INNER JOIN usr " +
+                     "ON registrations.user=usr.id " +
+                     "WHERE usr.email=? AND registrations.course=?;")) {
+            statement.setString(1, username);
+            statement.setLong(2, courseId);
+            return  statement.executeQuery().next();
+        } catch (SQLException e) {
+            log.error("isRegistered: Cant execute a query");
             return false;
-        }*/
-        return false;
+        }
+    }
+
+    public Page pagination(HttpServletRequest request) {
+        Importer<Registration> importer = null;
+        Page page = new Page();
+        try (Connection con = dataSource.getConnection()){
+            importer = new Importer<>(con);
+            page.setPage(request);
+            page.setCount(importer.getTableCount(Registration.class)/4 + 1);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Can't get connection");
+        } catch (ORMException e) {
+            log.error("ORM error", e);
+        }
+        return page;
     }
 }
