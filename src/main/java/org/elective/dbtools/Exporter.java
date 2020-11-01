@@ -1,19 +1,23 @@
 package org.elective.dbtools;
 
+import org.apache.log4j.Logger;
 import org.elective.dbtools.annotations.Table;
 import org.elective.dbtools.annotations.TableField;
 import org.elective.dbtools.exceptions.ORMException;
+import org.elective.service.CourseService;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Exporter {
+public class Exporter<T> {
+    private static final Logger log = Logger.getLogger(Exporter.class);
     private Connection connection;
 
     public Exporter(Connection connection) {
@@ -25,7 +29,7 @@ public class Exporter {
      * @param obj Object to save to database
      * @throws ORMException When any error occurs
      */
-    public void save(Object obj) throws ORMException {
+    public void save(T obj) throws ORMException {
         Class<?> clazz = obj.getClass();
         if (!clazz.isAnnotationPresent(Table.class))
             throw new ORMException("The class must marked with annotation `Table(...)`");
@@ -53,7 +57,7 @@ public class Exporter {
         }
     }
 
-    private String createSQLQuery(Object obj, List<Field> fields) throws ORMException{
+    private String createSQLQuery(T obj, List<Field> fields) throws ORMException{
         Class<?> clazz = obj.getClass();
         StringBuilder query = new StringBuilder("INSERT INTO ");
         query.append(Tools.getSQLNameFromClass(clazz)).append('(');
@@ -78,13 +82,18 @@ public class Exporter {
 
                 boolean useQuotes =
                         field.getType() == byte[].class ||
-                        field.getType() == String.class;
+                        field.getType() == String.class ||
+                        field.getType() == LocalDate.class;
 
+                log.trace("FIELD{"+field.getName()+"} TYPE{"+field.getType()+"}");
                 if (useQuotes) query.append('"');
                 if (field.getType() == byte[].class) {
                     // For BINARY fields
-                    for (byte b : (byte[]) field.get(obj))
-                        query.append((char) b);
+                    for (byte b : (byte[]) field.get(obj)) query.append((char) b);
+                } else if (field.getType() == LocalDate.class) {
+                    // For dates fields (jdbc works with sql.Date)
+                    java.sql.Date sqlDate = java.sql.Date.valueOf((LocalDate) field.get(obj));
+                    query.append(sqlDate);
                 } else {
                     query.append(field.get(obj));
                 }
