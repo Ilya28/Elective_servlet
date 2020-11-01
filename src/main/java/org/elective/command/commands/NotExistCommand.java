@@ -10,6 +10,6 @@ public class NotExistCommand implements Command {
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) {
         request.setAttribute("message", "404, command (page) does not fond");
-        return WebPaths.convertNameToPath("errorPage");
+        return WebPaths.nameToPath("errorPage");
     }
 }
