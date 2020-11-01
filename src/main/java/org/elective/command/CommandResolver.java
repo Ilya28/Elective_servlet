@@ -108,6 +108,11 @@ public class CommandResolver {
                 new CourseRegisterCommand(new RegistrationService()),
                 Security.USER, Security.TEACHER, Security.ADMIN
         );
+        commands.addMapping(
+                "course/redister/cancel", METHOD_GET,
+                new CourseRegisterCancelCommand(new RegistrationService()),
+                Security.USER, Security.TEACHER, Security.ADMIN
+        );
     }
 
     public static CommandKey getCommandKey(HttpServletRequest request) {
