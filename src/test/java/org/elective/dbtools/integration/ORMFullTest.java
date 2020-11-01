@@ -55,7 +55,7 @@ public class ORMFullTest {
         List<Object> loaded;
         try (Connection con = DriverManager.getConnection(CONNECTION_URL)) {
             Importer importer = new Importer(con);
-            loaded = importer.Load(Entity.class, null);
+            loaded = importer.load(Entity.class, null);
 
             //objects.forEach(System.out::println);
             //System.out.println("==========");
