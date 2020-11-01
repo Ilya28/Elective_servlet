@@ -3,31 +3,30 @@ package org.elective.entities;
 import org.elective.dbtools.annotations.Table;
 import org.elective.dbtools.annotations.TableField;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 @Table(name = "courses", fieldsAutoNaming = true)
 public class Course {
     @TableField(type = TableField.TF_GENERATED)
-    private int id;
+    private Long id;
     private String nameEN;
     private String nameUA;
     private String descriptionEN;
     private String descriptionUA;
-    private int subject;            // Foreign key
-    private String backgroundFile;
-    private Date dateStart;
-    private Date dateEnd;
+    private Long subject;            // Foreign key
+    private LocalDate dateStart;
+    private LocalDate dateEnd;
     private int seats;
     private int signedUp;
 
     public Course() {
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -63,35 +62,27 @@ public class Course {
         this.descriptionUA = descriptionUA;
     }
 
-    public int getSubject() {
+    public Long getSubject() {
         return subject;
     }
 
-    public void setSubject(int subject) {
+    public void setSubject(Long subject) {
         this.subject = subject;
     }
 
-    public String getBackgroundFile() {
-        return backgroundFile;
-    }
-
-    public void setBackgroundFile(String backgroundFile) {
-        this.backgroundFile = backgroundFile;
-    }
-
-    public Date getDateStart() {
+    public LocalDate getDateStart() {
         return dateStart;
     }
 
-    public void setDateStart(Date dateStart) {
+    public void setDateStart(LocalDate dateStart) {
         this.dateStart = dateStart;
     }
 
-    public Date getDateEnd() {
+    public LocalDate getDateEnd() {
         return dateEnd;
     }
 
-    public void setDateEnd(Date dateEnd) {
+    public void setDateEnd(LocalDate dateEnd) {
         this.dateEnd = dateEnd;
     }
 
@@ -109,5 +100,58 @@ public class Course {
 
     public void setSignedUp(int signedUp) {
         this.signedUp = signedUp;
+    }
+
+    public static Builder toBuilder() {
+        return new Builder();
+    }
+    public static class Builder {
+        private final Course newCourse;
+        public Builder() {
+            newCourse = new Course();
+        }
+        public Builder id(Long newId) {
+            newCourse.id = newId;
+            return this;
+        }
+        public Builder nameEN(String newName) {
+            newCourse.nameEN = newName;
+            return this;
+        }
+        public Builder nameUA(String newName) {
+            newCourse.nameUA = newName;
+            return this;
+        }
+        public Builder descriptionEN(String newDescription) {
+            newCourse.descriptionEN = newDescription;
+            return this;
+        }
+        public Builder descriptionUA(String newDescription) {
+            newCourse.descriptionUA = newDescription;
+            return this;
+        }
+        public Builder subject(Long newSubject) {
+            newCourse.subject = newSubject;
+            return this;
+        }
+        public Builder dateStart(LocalDate newDateStart) {
+            newCourse.dateStart = newDateStart;
+            return this;
+        }
+        public Builder dateEnd(LocalDate newDateEnd) {
+            newCourse.dateEnd = newDateEnd;
+            return this;
+        }
+        public Builder seats(int newSeats) {
+            newCourse.seats = newSeats;
+            return this;
+        }
+        public Builder signedUp(int newSignedUp) {
+            newCourse.signedUp = newSignedUp;
+            return this;
+        }
+        public Course build(){
+            return newCourse;
+        }
     }
 }
