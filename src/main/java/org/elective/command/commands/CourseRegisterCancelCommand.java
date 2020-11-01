@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class CourseRegisterCancelCommand  implements Command {
-    private static final Logger log = Logger.getLogger(CourseRegisterCommand.class);
+    private static final Logger log = Logger.getLogger(CourseRegisterCancelCommand.class);
     private final RegistrationService registrationService;
 
     public CourseRegisterCancelCommand(RegistrationService registrationService) {
