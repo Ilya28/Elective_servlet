@@ -2,7 +2,6 @@ package org.elective.command.commands;
 
 import org.apache.log4j.Logger;
 import org.elective.command.Command;
-import org.elective.entities.Registration;
 import org.elective.service.RegistrationService;
 import org.elective.service.Security;
 
@@ -19,7 +18,7 @@ public class CourseRegisterCommand implements Command {
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) {
-        String username = (String) request.getServletContext().getAttribute(Security.ATTRIBUTE_USERNAME_HOLDER);
+        String username = (String) request.getSession().getAttribute(Security.ATTRIBUTE_USERNAME_HOLDER);
         if (username == null) {
             log.error("Null username");
             return "redirect:/courses";
