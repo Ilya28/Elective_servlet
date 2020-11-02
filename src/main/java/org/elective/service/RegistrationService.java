@@ -5,7 +5,6 @@ import org.elective.dbtools.ConnectionPoolHolder;
 import org.elective.dbtools.Exporter;
 import org.elective.dbtools.Importer;
 import org.elective.dbtools.exceptions.ORMException;
-import org.elective.entities.Course;
 import org.elective.entities.Registration;
 import org.elective.entities.User;
 import org.elective.service.pagination.Page;
@@ -25,13 +24,21 @@ public class RegistrationService implements Service{
 
     public List<Registration> getRegistrationsByUserEmail(String email, Page page) {
         Importer<Registration> importer = null;
+        Importer<User> userImporter = null;
         try (Connection con = dataSource.getConnection()){
             importer = new Importer<>(con);
-            return importer.load(Registration.class, "WHERE email='" + email +
-                    "' LIMIT " + (page.getPage()-1)*4 + ", " + page.getPage()*4);
+            userImporter = new Importer<>(con);
+            Optional<User> user = userImporter.loadOne(User.class, "WHERE email='"+email+"'");
+            if (!user.isPresent()) {
+                log.warn("User {" + email + "} not fond");
+                return Collections.emptyList();
+            }
+            return importer.load(Registration.class, "WHERE user=" + user.get().getId() +
+                    " LIMIT " + (page.getPage()-1)*4 + ", " + page.getPage()*4);
         } catch (SQLException e) {
             throw new IllegalStateException("Can't get connection");
         } catch (ORMException e) {
+            log.error("ORM exception", e);
             return Collections.emptyList();
         }
     }
@@ -72,8 +79,10 @@ public class RegistrationService implements Service{
                              "WHERE usr.email=? AND registrations.course=?;")) {
              statement.setString(1, username);
              statement.setLong(2, courseId);
-             if (statement.executeUpdate() != 1)
-                 log.warn("Deleting error. More o less than one updated rows");
+             log.info("Prepared statement: " + statement.toString());
+             int updated = statement.executeUpdate();
+             if (updated != 1)
+                 log.warn("Deleting error. More or less than one ("+updated+") updated rows");
         } catch (SQLException e) {
             log.error("deleteByUsernameAndCourseId: Cant execute a query");
         }
