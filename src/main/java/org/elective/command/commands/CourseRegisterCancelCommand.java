@@ -18,7 +18,7 @@ public class CourseRegisterCancelCommand  implements Command {
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) {
-        String username = (String) request.getServletContext().getAttribute(Security.ATTRIBUTE_USERNAME_HOLDER);
+        String username = (String) request.getSession().getAttribute(Security.ATTRIBUTE_USERNAME_HOLDER);
         try {
             Long id = Long.valueOf(request.getParameter("id"));
             if (username != null)
