@@ -26,13 +26,14 @@ public class HomeGetCommand implements Command {
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) {
-        String username = (String) request.getServletContext().getAttribute(Security.ATTRIBUTE_USERNAME_HOLDER);
+        String username = (String) request.getSession().getAttribute(Security.ATTRIBUTE_USERNAME_HOLDER);
         Page page = registrationService.pagination(request);
         List<Registration> registrations = Collections.emptyList();
         if (username != null)
             registrations = registrationService.getRegistrationsByUserEmail(username, page);
         else
             log.error("Null username");
+        log.info(registrations.size() + " registrations fond");
         request.setAttribute("registrations", registrations);
         Security role = Security.getUserRole(request);
         return WebPaths.nameToPath((role == Security.USER)? USER_HOME: TEACHER_HOME);
