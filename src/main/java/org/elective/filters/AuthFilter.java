@@ -30,10 +30,12 @@ public class AuthFilter implements Filter {
         log.info("Allowed roles: " + allowedRoles.toString());
         if (allowedRoles.contains(userRole)) {
             log.info("ALLOWED");
+            request.setAttribute("role", userRole.name());
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             log.info("DENIED");
-            response.getWriter().append("Access denied <br/> <a href=\"/login\">Login</a>");
+            response.getWriter().append("Access denied " +
+                    "<br/> <a href=\"/login\">Login</a> <br/> <a href=\"/home\">Home</a>");
         }
     }
 
