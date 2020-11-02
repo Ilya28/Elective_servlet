@@ -77,9 +77,9 @@ public class User {
     public static Builder toBuilder() {
         return new Builder();
     }
-    private static class Builder {
+    public static class Builder {
         User newUser;
-        public Builder() {
+        private Builder() {
             newUser = new User();
         }
         public Builder id(Long newId) {
