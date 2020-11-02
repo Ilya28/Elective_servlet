@@ -49,7 +49,7 @@ public class CommandResolver {
         );
         commands.addMapping(
                 "register", METHOD_POST,
-                new RegisterGetCommand(),
+                new RegisterPostCommand(new UserService()),
                 Security.UNKNOWN
         );
         // ###### HOME ######
@@ -61,18 +61,18 @@ public class CommandResolver {
         // ###### USER ######
         commands.addMapping(
                 "user", METHOD_GET,
-                new UserGetCommand(),
+                new UserGetCommand(new UserService()),
                 Security.ADMIN, Security.TEACHER
         );
         commands.addMapping(
                 "user/delete", METHOD_GET,
-                new UserDeleteGetCommand(),
+                new UserDeleteGetCommand(new UserService()),
                 Security.ADMIN
         );
         // ###### USERS ######
         commands.addMapping(
                 "users", METHOD_GET,
-                new UsersGetCommand(),
+                new UsersGetCommand(new UserService()),
                 Security.TEACHER, Security.ADMIN
         );
         // ###### COURSES ######
@@ -112,6 +112,12 @@ public class CommandResolver {
                 "course/register/cancel", METHOD_GET,
                 new CourseRegisterCancelCommand(new RegistrationService()),
                 Security.USER, Security.TEACHER, Security.ADMIN
+        );
+        // ###### LOCALE ######
+        commands.addMapping(
+                "locale", METHOD_GET,
+                new ChangeLocaleGetCommand(),
+                Security.UNKNOWN, Security.USER, Security.TEACHER, Security.ADMIN
         );
     }
 
