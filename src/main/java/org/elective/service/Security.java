@@ -27,7 +27,9 @@ public enum  Security {
 
     public static void setUserRole(HttpServletRequest request, Security role, String username) {
         request.getSession().setAttribute(ATTRIBUTE_ROLE_HOLDER, role.name());
-        request.getServletContext().setAttribute(ATTRIBUTE_USERNAME_HOLDER, username);
+        request
+                .getSession()
+                .setAttribute(ATTRIBUTE_USERNAME_HOLDER, username);
     }
 
     public static Security getUserRole(HttpServletRequest request) {
